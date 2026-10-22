@@ -1,18 +1,54 @@
-{% if user.is_authenticated %}
-    <a class="nav-link text-white" href="{% url 'dashboard' %}">Dashboard</a>
-    {% if user.role == "client" %}
-        <a class="nav-link text-white" href="#">Meus Jobs</a>
-        <a class="nav-link text-white" href="#">Novo Job</a>
-    {% elif user.role == "freelancer" %}
-        <a class="nav-link text-white" href="#">Buscar Jobs</a>
-        <a class="nav-link text-white" href="#">Minhas Propostas</a>
-    {% endif %}
-    <span class="text-white-50">Olá, {{ user.username }}</span>
-    <form method="post" action="{% url 'logout' %}" class="d-inline">
-        {% csrf_token %}
-        <button class="btn btn-sm btn-outline-light" type="submit">Sair</button>
-    </form>
-{% else %}
-    <a class="nav-link text-white" href="{% url 'login' %}">Login</a>
-    <a class="btn btn-sm btn-primary" href="{% url 'signup' %}">Cadastrar</a>
-{% endif %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">FreelaMatch</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain"
+                aria-controls="navMain" aria-expanded="false" aria-label="Alternar navegação">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'job_list' %}">Vagas</a>
+                </li>
+                {% if user.is_authenticated and user.role == "client" %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'my_jobs' %}">Meus Jobs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'job_create' %}">Novo Job</a>
+                    </li>
+                {% elif user.is_authenticated and user.role == "freelancer" %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Minhas Propostas</a>
+                    </li>
+                {% endif %}
+            </ul>
+
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <span class="navbar-text me-lg-3">Olá, {{ user.username }}</span>
+                    </li>
+                    <li class="nav-item">
+                        <form method="post" action="{% url 'logout' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-outline-light" type="submit">Sair</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Login</a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-sm btn-primary" href="{% url 'signup' %}">Cadastrar</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

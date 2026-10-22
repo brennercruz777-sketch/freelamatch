@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} — FreelaMatch{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="h3 mb-1">{{ job.title }}</h1>
+        <small class="text-muted">
+            {{ job.category.name }} · Publicado por {{ job.client.username }}
+            · {{ job.created_at|date:"d/m/Y" }}
+        </small>
+    </div>
+    <span class="badge bg-secondary fs-6">{{ job.get_status_display }}</span>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <p class="mb-3" style="white-space: pre-line;">{{ job.description }}</p>
+        <ul class="list-unstyled mb-0">
+            <li><strong>Orçamento:</strong> R$ {{ job.budget_min }} – R$ {{ job.budget_max }}</li>
+            <li><strong>Prazo:</strong> {{ job.deadline|date:"d/m/Y" }}</li>
+        </ul>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    {% if can_propose %}
+        <a href="#" class="btn btn-primary">Enviar proposta</a>
+    {% elif user.is_authenticated and user.role == "freelancer" and not job.is_open %}
+        <span class="text-muted">Este job não está mais aberto para propostas.</span>
+    {% endif %}
+
+    {% if user.is_authenticated and user == job.client %}
+        <a href="{% url 'job_update' job.pk %}" class="btn btn-outline-secondary">Editar</a>
+        <a href="{% url 'job_delete' job.pk %}" class="btn btn-outline-danger">Excluir</a>
+    {% endif %}
+</div>
+{% endblock %}

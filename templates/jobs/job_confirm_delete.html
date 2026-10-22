@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Excluir job — FreelaMatch{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Excluir job</h1>
+<p>Tem certeza de que quer excluir <strong>{{ object.title }}</strong>? Esta ação não pode ser desfeita.</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Excluir</button>
+    <a href="{{ object.get_absolute_url }}" class="btn btn-link">Cancelar</a>
+</form>
+{% endblock %}

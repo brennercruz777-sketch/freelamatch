@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Vagas — FreelaMatch{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Vagas abertas</h1>
+    {% if user.is_authenticated and user.role == "client" %}
+        <a href="{% url 'job_create' %}" class="btn btn-primary">Publicar vaga</a>
+    {% endif %}
+</div>
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-5">
+        <input type="text" name="q" value="{{ current_q }}" class="form-control" placeholder="Buscar por título ou descrição">
+    </div>
+    <div class="col-md-3">
+        <select name="category" class="form-select">
+            <option value="">Todas as categorias</option>
+            {% for c in categories %}
+                <option value="{{ c.slug }}" {% if c.slug == current_category %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="status" class="form-select">
+            {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100" type="submit">Filtrar</button>
+    </div>
+</form>
+
+{% if jobs %}
+    <div class="list-group">
+        {% for job in jobs %}
+            <a href="{{ job.get_absolute_url }}" class="list-group-item list-group-item-action">
+                <div class="d-flex justify-content-between">
+                    <h2 class="h6 mb-1">{{ job.title }}</h2>
+                    <span class="badge bg-secondary">{{ job.get_status_display }}</span>
+                </div>
+                <small class="text-muted">
+                    {{ job.category.name }} · R$ {{ job.budget_min }} – R$ {{ job.budget_max }}
+                    · Prazo: {{ job.deadline|date:"d/m/Y" }}
+                </small>
+            </a>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+        <nav class="mt-4">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ current_q }}&category={{ current_category }}&status={{ current_status }}">Anterior</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ current_q }}&category={{ current_category }}&status={{ current_status }}">Próxima</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <p class="text-muted">Nenhuma vaga encontrada com esses filtros.</p>
+{% endif %}
+{% endblock %}
