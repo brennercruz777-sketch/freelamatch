@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Enviar proposta — FreelaMatch{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <h1 class="h4 mb-1">Enviar proposta</h1>
+                <p class="text-muted mb-0">Job: <strong>{{ job.title }}</strong></p>
+                <small class="text-muted">
+                    Orçamento: R$ {{ job.budget_min }} – R$ {{ job.budget_max }}
+                    · Prazo: {{ job.deadline|date:"d/m/Y" }}
+                </small>
+            </div>
+        </div>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+            {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                    {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+            {% endfor %}
+            <button class="btn btn-primary" type="submit">Enviar proposta</button>
+            <a href="{{ job.get_absolute_url }}" class="btn btn-link">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

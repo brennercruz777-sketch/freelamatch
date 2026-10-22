@@ -20,7 +20,9 @@
                         <a href="{% url 'job_update' job.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
                         <a href="{% url 'job_delete' job.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
                     {% endif %}
-                    <span class="badge bg-info text-dark align-self-center">{{ job.proposals.count }} proposta{{ job.proposals.count|pluralize }}</span>
+                    <a href="{% url 'job_proposals' job.pk %}" class="badge bg-info text-dark text-decoration-none align-self-center">
+                        {{ job.proposals.count }} proposta{{ job.proposals.count|pluralize }}
+                    </a>
                 </div>
             </div>
         {% endfor %}

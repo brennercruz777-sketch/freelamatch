@@ -59,7 +59,6 @@ class JobDetailView(DetailView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
-        # Só freelancer logado pode propor. Já verifica se ele já propôs.
         ctx["can_propose"] = (
             user.is_authenticated
             and user.role == "freelancer"
@@ -93,7 +92,6 @@ class JobCreateView(ClientRequiredMixin, CreateView):
 
 
 class JobUpdateView(OwnerRequiredMixin, UpdateView):
-    """Cliente dono do job edita — só se ainda estiver aberto."""
     model = Job
     form_class = JobForm
     template_name = "jobs/job_form.html"
@@ -101,8 +99,6 @@ class JobUpdateView(OwnerRequiredMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         response = super().dispatch(request, *args, **kwargs)
-        # get_object já roda no dispatch do UpdateView (via get/post),
-        # então checamos o status depois de ter o self.object.
         if hasattr(self, "object") and not self.object.is_open:
             messages.error(request, "Só é possível editar jobs abertos.")
             return redirect(self.object.get_absolute_url())
@@ -122,3 +118,20 @@ class JobDeleteView(OwnerRequiredMixin, DeleteView):
     def form_valid(self, form):
         messages.success(self.request, "Job excluído.")
         return super().form_valid(form)
+
+
+class JobProposalsView(OwnerRequiredMixin, DetailView):
+    """Lista as propostas recebidas em um job do cliente logado."""
+    model = Job
+    template_name = "jobs/job_proposals.html"
+    context_object_name = "job"
+    owner_field = "client"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["proposals"] = (
+            self.object.proposals
+            .select_related("freelancer__freelancer_profile")
+            .order_by("-created_at")
+        )
+        return ctx

@@ -25,14 +25,17 @@
 
 <div class="d-flex gap-2">
     {% if can_propose %}
-        <a href="#" class="btn btn-primary">Enviar proposta</a>
+        <a href="{% url 'proposal_create' job.pk %}" class="btn btn-primary">Enviar proposta</a>
     {% elif user.is_authenticated and user.role == "freelancer" and not job.is_open %}
         <span class="text-muted">Este job não está mais aberto para propostas.</span>
     {% endif %}
 
     {% if user.is_authenticated and user == job.client %}
-        <a href="{% url 'job_update' job.pk %}" class="btn btn-outline-secondary">Editar</a>
-        <a href="{% url 'job_delete' job.pk %}" class="btn btn-outline-danger">Excluir</a>
+    <a href="{% url 'job_proposals' job.pk %}" class="btn btn-info">
+        Ver propostas ({{ job.proposals.count }})
+    </a>
+    <a href="{% url 'job_update' job.pk %}" class="btn btn-outline-secondary">Editar</a>
+    <a href="{% url 'job_delete' job.pk %}" class="btn btn-outline-danger">Excluir</a>
     {% endif %}
 </div>
 {% endblock %}
