@@ -1,9 +1,8 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 from django.shortcuts import render
-from django.urls import path, include
+from django.urls import include, path
 
 
 def home(request):
@@ -13,6 +12,7 @@ def home(request):
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", home, name="home"),
+    path("accounts/", include("accounts.urls")),
     path("accounts/", include("django.contrib.auth.urls")),
 ]
 

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — FreelaMatch{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Olá, {{ user.username }} 👋</h1>
+<p class="text-muted">
+    Você está logado como
+    <strong>{% if user.is_client %}cliente{% else %}freelancer{% endif %}</strong>.
+</p>
+<p class="text-muted">O dashboard completo chega na Sprint 4.</p>
+{% endblock %}
