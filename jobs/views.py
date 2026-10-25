@@ -60,12 +60,30 @@ class JobDetailView(DetailView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
+        job = self.object
+
+        # Regra 1: Pode enviar proposta?
         ctx["can_propose"] = (
             user.is_authenticated
             and user.role == "freelancer"
-            and self.object.is_open
-            and not self.object.proposals.filter(freelancer=user).exists()
+            and job.is_open
+            and not job.proposals.filter(freelancer=user).exists()
         )
+
+        # Regra 2: Pode abrir conversa?
+        # Usamos hasattr para verificar com segurança se a Thread existe
+        ctx["can_chat"] = False
+        if user.is_authenticated and hasattr(job, "thread"):
+            ctx["can_chat"] = job.thread.is_participant(user)
+
+        # Regra 3: Pode avaliar?
+        ctx["can_review"] = False
+        if user.is_authenticated and job.status == Job.Status.COMPLETED:
+            accepted = job.proposals.filter(status="accepted").select_related("freelancer").first()
+            if accepted and (user == job.client or user == accepted.freelancer):
+                ja_avaliou = job.reviews.filter(reviewer=user).exists()
+                ctx["can_review"] = not ja_avaliou
+
         return ctx
 
 
@@ -138,12 +156,17 @@ class JobProposalsView(OwnerRequiredMixin, DetailView):
         return ctx
 
 class JobCompleteView(OwnerRequiredMixin, View):
-    """Cliente dono do job marca como concluído."""
     owner_field = "client"
 
     def get_object(self, queryset=None):
         from django.shortcuts import get_object_or_404
-        return get_object_or_404(Job, pk=self.kwargs["pk"])
+        from django.core.exceptions import PermissionDenied
+        job = get_object_or_404(Job, pk=self.kwargs["pk"])
+        
+        # A checagem manual que evita o freelancer de concluir o job
+        if job.client != self.request.user:
+            raise PermissionDenied("Você não é o dono deste job.")
+        return job
 
     def post(self, request, *args, **kwargs):
         job = self.get_object()
@@ -155,3 +178,29 @@ class JobCompleteView(OwnerRequiredMixin, View):
             job.save(update_fields=["status", "completed_at"])
             messages.success(request, "Job concluído! Agora vocês podem se avaliar.")
         return redirect(job.get_absolute_url())
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        user = self.request.user
+        job = self.object
+
+        ctx["can_propose"] = (
+            user.is_authenticated
+            and user.role == "freelancer"
+            and job.is_open
+            and not job.proposals.filter(freelancer=user).exists()
+        )
+
+        # A MUDANÇA ESTÁ AQUI:
+        ctx["can_chat"] = False
+        if user.is_authenticated and hasattr(job, "thread"):
+            ctx["can_chat"] = job.thread.is_participant(user)
+
+        ctx["can_review"] = False
+        if user.is_authenticated and job.status == Job.Status.COMPLETED:
+            accepted = job.proposals.filter(status="accepted").select_related("freelancer").first()
+            if accepted and (user == job.client or user == accepted.freelancer):
+                ja_avaliou = job.reviews.filter(reviewer=user).exists()
+                ctx["can_review"] = not ja_avaliou
+
+        return ctx  

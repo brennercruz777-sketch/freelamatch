@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Minhas conversas — FreelaMatch{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Minhas conversas</h1>
+
+<p>Total de threads recebidas: {{ threads|length }}</p>
+
+{% if threads %}
+    <div class="list-group">
+        {% for t in threads %}
+            <a href="{% url 'thread_detail' t.pk %}" class="list-group-item list-group-item-action">
+                <div class="d-flex justify-content-between">
+                    <strong>{{ t.job.title }}</strong>
+                    <small class="text-muted">{{ t.created_at|date:"d/m/Y" }}</small>
+                </div>
+                <small class="text-muted">
+                    Cliente: {{ t.job.client.username }}
+                    · Status: {{ t.job.get_status_display }}
+                </small>
+            </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="text-muted">Você ainda não tem conversas. Elas aparecem quando uma proposta é aceita.</p>
+{% endif %}
+{% endblock %}

@@ -13,8 +13,10 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", home, name="home"),
     path("jobs/", include("jobs.urls")),
-    path("proposals/", include("proposals.urls")),   # ← nova linha
+    path("proposals/", include("proposals.urls")),
+    path("threads/", include("messaging.urls")), 
     path("accounts/", include("accounts.urls")),
+    path("reviews/", include("reviews.urls")),
     path("accounts/", include("django.contrib.auth.urls")),
 ]
 

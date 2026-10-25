@@ -32,6 +32,13 @@
         <span class="text-muted align-self-center">Este job não está mais aberto para propostas.</span>
     {% endif %}
 
+    {# ---------- Conversa (cliente dono ou freelancer aceito) ---------- #}
+    {% if can_chat %}
+        <a href="{% url 'thread_detail' job.thread.pk %}" class="btn btn-outline-primary">
+            Abrir conversa
+        </a>
+    {% endif %}
+
     {# ---------- Ações do cliente dono ---------- #}
     {% if user.is_authenticated and user == job.client %}
 
@@ -54,6 +61,11 @@
             <a href="{% url 'job_delete' job.pk %}" class="btn btn-outline-danger">Excluir</a>
         {% endif %}
 
+    {% endif %}
+
+    {# ---------- Avaliação (cliente ou freelancer, após conclusão) ---------- #}
+    {% if can_review %}
+        <a href="{% url 'review_create' job.pk %}" class="btn btn-warning">Avaliar</a>
     {% endif %}
 
 </div>
