@@ -70,3 +70,39 @@ class JobPermissionTests(TestCase):
         response = self.client.get(reverse("job_list"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "T")
+
+class JobCompleteTests(TestCase):
+    def setUp(self):
+        self.cli = User.objects.create_user(
+            username="cli", email="cli@t.com", password="x", role=User.Role.CLIENT,
+        )
+        self.fre = User.objects.create_user(
+            username="fre", email="fre@t.com", password="x", role=User.Role.FREELANCER,
+        )
+        cat = Category.objects.create(name="Web", slug="web")
+        self.job = Job.objects.create(
+            client=self.cli, category=cat, title="T", description="D",
+            budget_min=100, budget_max=200, deadline=timezone.now().date(),
+            status=Job.Status.IN_PROGRESS,
+        )
+
+    def test_only_owner_can_complete(self):
+        self.client.force_login(self.fre)
+        response = self.client.post(reverse("job_complete", args=[self.job.pk]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_complete_sets_completed_at(self):
+        self.client.force_login(self.cli)
+        response = self.client.post(reverse("job_complete", args=[self.job.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, Job.Status.COMPLETED)
+        self.assertIsNotNone(self.job.completed_at)
+
+    def test_cannot_complete_open_job(self):
+        self.job.status = Job.Status.OPEN
+        self.job.save()
+        self.client.force_login(self.cli)
+        self.client.post(reverse("job_complete", args=[self.job.pk]))
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.status, Job.Status.OPEN)

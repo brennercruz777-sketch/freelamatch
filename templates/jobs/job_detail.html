@@ -23,19 +23,38 @@
     </div>
 </div>
 
-<div class="d-flex gap-2">
+<div class="d-flex gap-2 flex-wrap">
+
+    {# ---------- Ações do freelancer ---------- #}
     {% if can_propose %}
         <a href="{% url 'proposal_create' job.pk %}" class="btn btn-primary">Enviar proposta</a>
     {% elif user.is_authenticated and user.role == "freelancer" and not job.is_open %}
-        <span class="text-muted">Este job não está mais aberto para propostas.</span>
+        <span class="text-muted align-self-center">Este job não está mais aberto para propostas.</span>
     {% endif %}
 
+    {# ---------- Ações do cliente dono ---------- #}
     {% if user.is_authenticated and user == job.client %}
-    <a href="{% url 'job_proposals' job.pk %}" class="btn btn-info">
-        Ver propostas ({{ job.proposals.count }})
-    </a>
-    <a href="{% url 'job_update' job.pk %}" class="btn btn-outline-secondary">Editar</a>
-    <a href="{% url 'job_delete' job.pk %}" class="btn btn-outline-danger">Excluir</a>
+
+        {% if job.status == "in_progress" %}
+            <form method="post" action="{% url 'job_complete' job.pk %}" class="d-inline">
+                {% csrf_token %}
+                <button class="btn btn-success" type="submit"
+                        onclick="return confirm('Marcar este job como concluído?')">
+                    Marcar como concluído
+                </button>
+            </form>
+        {% endif %}
+
+        <a href="{% url 'job_proposals' job.pk %}" class="btn btn-info">
+            Ver propostas ({{ job.proposals.count }})
+        </a>
+
+        {% if job.is_open %}
+            <a href="{% url 'job_update' job.pk %}" class="btn btn-outline-secondary">Editar</a>
+            <a href="{% url 'job_delete' job.pk %}" class="btn btn-outline-danger">Excluir</a>
+        {% endif %}
+
     {% endif %}
+
 </div>
 {% endblock %}

@@ -7,6 +7,9 @@ from accounts.mixins import FreelancerRequiredMixin, OwnerRequiredMixin
 from jobs.models import Job
 from .forms import ProposalForm
 from .models import Proposal
+from django.views import View
+from .services import ProposalError, accept_proposal
+
 
 
 class ProposalCreateView(FreelancerRequiredMixin, CreateView):
@@ -47,3 +50,29 @@ class ProposalCreateView(FreelancerRequiredMixin, CreateView):
 class ProposalListView(OwnerRequiredMixin, CreateView):
     """Não é usado diretamente — placeholder para evitar import errado."""
     pass
+
+class ProposalAcceptView(OwnerRequiredMixin, View):
+    """Cliente dono do job aceita uma proposta."""
+    owner_field = "job__client"  # a proposta pertence ao job do cliente
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(
+            Proposal.objects.select_related("job"),
+            pk=self.kwargs["pk"],
+        )
+
+    def dispatch(self, request, *args, **kwargs):
+        self.proposal = self.get_object()
+        if self.proposal.job.client != request.user:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied("Você não é o dono deste job.")
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            accept_proposal(self.proposal)
+        except ProposalError as e:
+            messages.error(request, str(e))
+        else:
+            messages.success(request, f"Proposta de {self.proposal.freelancer.username} aceita!")
+        return redirect("job_proposals", pk=self.proposal.job_id)

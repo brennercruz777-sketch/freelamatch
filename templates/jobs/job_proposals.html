@@ -11,27 +11,33 @@
 </div>
 
 {% if proposals %}
-    <div class="list-group">
-        {% for p in proposals %}
-            <div class="list-group-item">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <strong>{{ p.freelancer.username }}</strong>
-                        {% if p.freelancer.freelancer_profile.headline %}
-                            <span class="text-muted">— {{ p.freelancer.freelancer_profile.headline }}</span>
-                        {% endif %}
-                    </div>
-                    <span class="badge bg-secondary">{{ p.get_status_display }}</span>
-                </div>
-                <p class="mb-1 mt-2" style="white-space: pre-line;">{{ p.message }}</p>
-                <small class="text-muted">
-                    R$ {{ p.amount }} · {{ p.deadline_days }} dia{{ p.deadline_days|pluralize }}
-                    · {{ p.created_at|date:"d/m/Y H:i" }}
-                </small>
+<div class="list-group">
+    {% for p in proposals %}
+    <div class="list-group-item">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <strong>{{ p.freelancer.username }}</strong>
+                {% if p.freelancer.freelancer_profile.headline %}
+                <span class="text-muted">— {{ p.freelancer.freelancer_profile.headline }}</span>
+                {% endif %}
             </div>
-        {% endfor %}
+            <div class="d-flex gap-2 align-items-center">
+                <span class="badge bg-secondary">{{ p.get_status_display }}</span>
+                {% if job.is_open and p.status == "pending" %}
+                <form method="post" action="{% url 'proposal_accept' p.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-success" type="submit"
+                        onclick="return confirm('Aceitar esta proposta? As demais serão rejeitadas.')">
+                        Aceitar
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
     </div>
+    {% endfor %}
+</div>
 {% else %}
-    <p class="text-muted">Ainda não há propostas para este job.</p>
+<p class="text-muted">Ainda não há propostas para este job.</p>
 {% endif %}
 {% endblock %}

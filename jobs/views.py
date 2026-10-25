@@ -10,10 +10,11 @@ from django.views.generic import (
     ListView,
     UpdateView,
 )
-
 from accounts.mixins import ClientRequiredMixin, OwnerRequiredMixin
 from .forms import JobForm
 from .models import Category, Job
+from django.utils import timezone
+from django.views import View
 
 
 class JobListView(ListView):
@@ -135,3 +136,22 @@ class JobProposalsView(OwnerRequiredMixin, DetailView):
             .order_by("-created_at")
         )
         return ctx
+
+class JobCompleteView(OwnerRequiredMixin, View):
+    """Cliente dono do job marca como concluído."""
+    owner_field = "client"
+
+    def get_object(self, queryset=None):
+        from django.shortcuts import get_object_or_404
+        return get_object_or_404(Job, pk=self.kwargs["pk"])
+
+    def post(self, request, *args, **kwargs):
+        job = self.get_object()
+        if job.status != Job.Status.IN_PROGRESS:
+            messages.error(request, "Só é possível concluir jobs em andamento.")
+        else:
+            job.status = Job.Status.COMPLETED
+            job.completed_at = timezone.now()
+            job.save(update_fields=["status", "completed_at"])
+            messages.success(request, "Job concluído! Agora vocês podem se avaliar.")
+        return redirect(job.get_absolute_url())
