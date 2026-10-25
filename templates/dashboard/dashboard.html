@@ -2,10 +2,107 @@
 {% block title %}Dashboard — FreelaMatch{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-3">Olá, {{ user.username }} 👋</h1>
-<p class="text-muted">
-    Você está logado como
-    <strong>{% if user.is_client %}cliente{% else %}freelancer{% endif %}</strong>.
-</p>
-<p class="text-muted">O dashboard completo chega na Sprint 4.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Meu Dashboard</h1>
+    <span class="badge bg-primary fs-6">{% if user.role == "client" %}Cliente{% else %}Freelancer{% endif %}</span>
+</div>
+
+<div class="row g-3 mb-4">
+    {% if user.role == "client" %}
+        <!-- CARDS CLIENTE -->
+        <div class="col-md-3">
+            <div class="card text-center h-100 border-primary">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Jobs Abertos</h5>
+                    <h2 class="display-5 text-primary">{{ jobs_abertos }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100 border-warning">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Jobs em Andamento</h5>
+                    <h2 class="display-5 text-warning">{{ jobs_ativos }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100 border-success">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Total de Jobs</h5>
+                    <h2 class="display-5 text-success">{{ jobs_total }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100 border-info">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Propostas Recebidas</h5>
+                    <h2 class="display-5 text-info">{{ propostas_recebidas }}</h2>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- CARDS FREELANCER -->
+        <div class="col-md-3">
+            <div class="card text-center h-100 border-primary">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Propostas Enviadas</h5>
+                    <h2 class="display-5 text-primary">{{ propostas_enviadas }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100 border-success">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Propostas Aceitas</h5>
+                    <h2 class="display-5 text-success">{{ propostas_aceitas }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100 border-warning">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Sua Nota Média</h5>
+                    <h2 class="display-5 text-warning">{{ media_avaliacoes }}</h2>
+                    <small class="text-muted">{{ total_avaliacoes }} avaliações</small>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- LISTAS RÁPIDAS -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white fw-bold">
+        {% if user.role == "client" %}Últimos Jobs Publicados{% else %}Últimas Propostas Enviadas{% endif %}
+    </div>
+    <div class="list-group list-group-flush">
+        {% if user.role == "client" %}
+            {% for job in ultimos_jobs %}
+                <a href="{{ job.get_absolute_url }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ job.title }}</strong>
+                        <br><small class="text-muted">{{ job.created_at|date:"d/m/Y" }}</small>
+                    </div>
+                    <span class="badge bg-secondary">{{ job.get_status_display }}</span>
+                </a>
+            {% empty %}
+                <div class="list-group-item text-muted">Você ainda não publicou nenhum job.</div>
+            {% endfor %}
+        {% else %}
+            {% for prop in ultimas_propostas %}
+                <a href="{{ prop.job.get_absolute_url }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ prop.job.title }}</strong>
+                        <br><small class="text-muted">R$ {{ prop.amount }} · {{ prop.created_at|date:"d/m/Y" }}</small>
+                    </div>
+                    <span class="badge bg-secondary">{{ prop.get_status_display }}</span>
+                </a>
+            {% empty %}
+                <div class="list-group-item text-muted">Você ainda não enviou nenhuma proposta.</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
